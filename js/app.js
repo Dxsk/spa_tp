@@ -2,13 +2,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const BASE_URL = "https://jsonplaceholder.typicode.com"
 
-    const newEl = (balise, target, options = {}) => {
+    // constructor new element html
+    const newElement = (balise, target, options = {}) => {
         const opts = options.attrs
         let el;
         if(options.attrs.link){
             el = document.createElement("a")
-            // el.href = options.attrs.link
-            // el.setAttribute("target", "_blank")
+            el.href = options.attrs.link
         } else {
             el = document.createElement(balise)
         }
@@ -30,116 +30,94 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let divUsers = document.getElementById("users")
     let divPosts = document.getElementById("posts")
-    let divComs = document.getElementById("coms")
 
-    fetch(`${BASE_URL}/users/`)
-                .then(Response => Response.json())
+    // main
+    const main = (divUsers, divPosts) => {
+        fetch(`${BASE_URL}/users/`)
+                .then(response => response.json())
                 .then(data => users(data))
                 .catch(err => console.log(err))
 
-    const users = (datas) => {
-        for (let i of datas){
+        const users = (datas) => {
+            for (let user of datas){
 
-            newEl("div", divUsers, {attrs:
-                {"id": i.id, "class": "column is-one-quarter is-size-6 has-text-centered"}, data: `[${i.id}]  `
-            })
-
-            linkOneUser = newEl("a", document.getElementById(i.id),
-                {attrs:{ /*"link": `${BASE_URL}/users/${i.id}`,*/"id": i.username, "class": "more" }, data: `${i.name} ${i.username}`}
-            )
-
-            linkOneUser.addEventListener("click", () => {
-                document.getElementById("posts").innerHTML = ""
-
-                fetch(`${BASE_URL}/users/${i.id}/posts/`)
-                    .then(Response => Response.json())
-                    .then(data => posts(data, divPosts, i.id, i.name))
-                    .catch(err => console.log(err))
-
-            })
-            
-        }
-    }
-
-    // <article class="media">
-        //   <figure class="media-left">
-        //     <p class="image is-48x48">
-        //     <img src="https://bulma.io/images/placeholders/128x128.png"></img>
-        //     </p>
-        //   </figure>
-        //   <div class="media-content">
-            //     <div class="content">
-            //       <p>
-            //         <strong>Barbara Middleton</strong>
-            //         <br>
-            //          body
-            //       </p>
-            //     </div>
-        //     //////////// coms
-        //     </div>
-    //   </div>
-    // </article>
-    
-    // posts
-    const posts = (data, target, id, name) => {
-            for (let i of data){
-                const media = newEl("article", divPosts, {attrs:{"class":"media",} })
-
-                const mediaFigure = newEl("figure", media, {attrs:{"class": "media-left"}})
-                const pInFigure = newEl("p", mediaFigure, {attrs:{"class": "image is-48x48"}})
-                    newEl("img", pInFigure, {attrs:{moreAttrs:{a:"src", b:"https://bulma.io/images/placeholders/128x128.png"}}})
-
-                const mediaContent = newEl("div", media, { attrs:{"class": "media-content"}})
-                const contentInMediaContent = newEl("div", mediaContent, {attrs:{"class":"content"}})
-                const pInMedia = newEl("p", contentInMediaContent, {attrs:{}, data: `<strong>${name}</strong> </br> ${i.body} </br> `})
-                
-                const viewComments = newEl("a", pInMedia, {attrs:{"class": "more"}, data: "View comments  </br> </br>"})
-                viewComments.addEventListener("click", (el) => {
-                    fetch(`${BASE_URL}/users/${i.id}/comments/`)
-                        .then(Response => Response.json())
-                        .then(data => coms(data, pInMedia, i.id))
-                        .catch(err => console.log(err))
+                newElement("div", divUsers, {attrs:
+                    {"id": user.id, "class": "column is-one-quarter is-size-6 has-text-centered"}, data: `[${user.id}]  `
                 })
-            }
 
-    }
+                linkOneUser = newElement("a", document.getElementById(user.id),
+                    {attrs:{"link":"#" ,"id": user.username,"class": "more"}, data:`${user.name} ${user.username}`}
+                )
 
-    // coms
+                linkOneUser.addEventListener("click", () => {
 
-    // <article class="media">
-    //     <figure class="media-left">
-    //         <p class="image is-48x48">
-    //         </p>
-    //     </figure>
-    //     <div class="media-content">
-    //         <div class="content">
-    //         <p>
-    //             <strong>Sean Brown</strong>
-    //             <br>
-    //             Donec sollicitudin urna eget eros malesuada sagittis. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Aliquam blandit nisl a nulla sagittis, a lobortis leo feugiat.
-    //         </p>
-    //         </div>
-    //     </div>
-    // </article>
+                    // Reset post if other click
+                    document.getElementById("posts").innerHTML = ""
 
-    // {url}/posts/{id_user}/comments
-    const coms = (data, target, id) => {
-        for (let i of data){
-            if(i.postId === id){
-                const comment = newEl('article', target, {attrs:{"class": "media"}})
-                const commentMediaLeft = newEl("figure", comment, { attrs:{"class": "media-left"}})
-                const pInMediaLeft = newEl("div", commentMediaLeft, { attrs:{"class": "image is-48x48"}})
-                     newEl("img", pInMediaLeft, {attrs:{moreAttrs:{a:"src", b:"https://bulma.io/images/placeholders/128x128.png"}}})
+                    // Listener
+                    fetch(`${BASE_URL}/users/${user.id}/posts/`)
+                        .then(response => response.json())
+                        .then(data => posts(data, divPosts, user.id, user.name))
+                        .catch(err => console.log(err))
 
-                const commentMediaContent = newEl("div", comment, { attrs:{"class": "media-content"}})
-                const contentInMediaContent = newEl("div", commentMediaContent, {attrs:{"class": "content"}})
-                    newEl("p", contentInMediaContent, {attrs:{}, data: `
-                    <strong>${i.name}</strong> <strong>${i.email}</strong> </br>
-                    ${i.body}
-                    `})
-
+                })
+                
             }
         }
-    }
+
+        // posts
+        const posts = (datas, target, id, name) => {
+            for (let post of datas){
+                const media = newElement("article", divPosts, {attrs:{"class":"media",} })
+
+                const mediaFigure = newElement("figure", media, {attrs:{"class": "media-left"}})
+                const pInFigure = newElement("p", mediaFigure, {attrs:{"class": "image is-48x48"}})
+                    newElement("img", pInFigure, {attrs:{moreAttrs:{a:"src", b:"https://bulma.io/images/placeholders/128x128.png"}}})
+
+                const mediaContent = newElement("div", media, { attrs:{"class": "media-content"}})
+                const contentInMediaContent = newElement("div", mediaContent, {attrs:{"class":"content"}})
+                const pInMedia = newElement("p", contentInMediaContent, {attrs:{}, data: `<strong class="has-text-link">${name}</strong> </br> ${post.body} </br> `})
+                
+                const viewComments = newElement("a", pInMedia, {attrs:{"class": "more"}, data: "View comments  </br> </br>"})
+
+
+                // Listener
+                viewComments.addEventListener("click", (el) => {
+                    fetch(`${BASE_URL}/users/${post.id}/comments/`)
+                        .then(response => response.json())
+                        .then(data => coms(data, pInMedia, post.id))
+                        .catch(err => console.log(err))
+                }, {once: true})
+            }
+
+        }
+
+        // {url}/posts/{id_user}/comments
+        const coms = (datas, target, id) => {
+            for (let com of datas){
+                if(com.postId === id){
+                    const comment = newElement('article', target, {attrs:{"class": "media"}})
+                    const commentMediaLeft = newElement("figure", comment, { attrs:{"class": "media-left"}})
+                    const pInMediaLeft = newElement("div", commentMediaLeft, { attrs:{"class": "image is-48x48"}})
+                        newElement("img", pInMediaLeft, {attrs:{moreAttrs:{a:"src", b:"https://bulma.io/images/placeholders/128x128.png"}}})
+
+                    const commentMediaContent = newElement("div", comment, { attrs:{"class": "media-content"}})
+                    const contentInMediaContent = newElement("div", commentMediaContent, {attrs:{"class": "content"}})
+                        newElement("p", contentInMediaContent, {attrs:{}, data: `
+                        <strong class="has-text-link">${com.name}</strong> <span class="has-text-link">${com.email}</span> </br>
+                        ${com.body}
+                        `})
+
+                }
+            }
+        }
+
+
+    } 
+    
+
+    // Run main
+    main(divUsers, divPosts);
+
 
 })
