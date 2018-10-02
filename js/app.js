@@ -2,7 +2,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const BASE_URL = "https://jsonplaceholder.typicode.com"
 
-    // constructor new element html
     const newElement = (balise, target, options = {}) => {
         const opts = options.attrs
         let el;
@@ -22,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
             el.setAttribute("class", opts.class)
         } 
         if(options.attrs.moreAttrs){
-            el.setAttribute(options.attrs.moreAttrs.a, options.attrs.moreAttrs.b)
+            el.setAttribute(options.attrs.moreAttrs.nameAttr, options.attrs.moreAttrs.valueAttr)
         }
         target.appendChild(el)
         return el
@@ -31,7 +30,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let divUsers = document.getElementById("users")
     let divPosts = document.getElementById("posts")
 
-    // main
     const main = (divUsers, divPosts) => {
         fetch(`${BASE_URL}/users/`)
                 .then(response => response.json())
@@ -51,13 +49,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 linkOneUser.addEventListener("click", () => {
 
-                    // Reset post if other click
                     document.getElementById("posts").innerHTML = ""
 
-                    // Listener
                     fetch(`${BASE_URL}/users/${user.id}/posts/`)
                         .then(response => response.json())
-                        .then(data => posts(data, divPosts, user.id, user.name))
+                        .then(data => posts(data, divPosts, user.name))
                         .catch(err => console.log(err))
 
                 })
@@ -65,38 +61,39 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // posts
-        const posts = (datas, target, id, name) => {
+        const posts = (datas,divPosts, name) => {
+            console.log(name)
             for (let post of datas){
                 const media = newElement("article", divPosts, {attrs:{"class":"media",} })
 
                 const mediaFigure = newElement("figure", media, {attrs:{"class": "media-left"}})
                 const pInFigure = newElement("p", mediaFigure, {attrs:{"class": "image is-48x48"}})
-                    newElement("img", pInFigure, {attrs:{moreAttrs:{a:"src", b:"https://bulma.io/images/placeholders/128x128.png"}}})
+                    newElement("img", pInFigure, {attrs:{moreAttrs:{nameAttr:"src", valueAttr:"https://bulma.io/images/placeholders/128x128.png"}}})
 
                 const mediaContent = newElement("div", media, { attrs:{"class": "media-content"}})
                 const contentInMediaContent = newElement("div", mediaContent, {attrs:{"class":"content"}})
                 const pInMedia = newElement("p", contentInMediaContent, {attrs:{}, data: `<strong class="has-text-link">${name}</strong> </br> ${post.body} </br> `})
                 
-                const viewComments = newElement("a", pInMedia, {attrs:{"class": "more"}, data: "View comments  </br> </br>"})
+                const viewComments = newElement("a", pInMedia, {attrs:{"class": "button is-text"}, data: "View comments  </br> </br>"})
 
+                const more = viewComments
 
-                // Listener
-                viewComments.addEventListener("click", (el) => {
+                viewComments.addEventListener("click", () => {
+                    viewComments.setAttribute("class", 'button is-text is-loading')
                     fetch(`${BASE_URL}/users/${post.id}/comments/`)
                         .then(response => response.json())
-                        .then(data => coms(data, pInMedia, post.id))
+                        .then(data => coms(data, pInMedia, post.id, viewComments))
                         .catch(err => console.log(err))
                 }, {once: true})
             }
 
         }
 
-        // {url}/posts/{id_user}/comments
-        const coms = (datas, target, id) => {
+        const coms = (datas, target, id, buttonMore) => {
+            buttonMore.classList.remove('is-loading')
             for (let com of datas){
                 if(com.postId === id){
-                    const comment = newElement('article', target, {attrs:{"class": "media"}})
+                    const comment = newElement('article', target, {attrs:{"class": `media toggle_${com.postId}`}})
                     const commentMediaLeft = newElement("figure", comment, { attrs:{"class": "media-left"}})
                     const pInMediaLeft = newElement("div", commentMediaLeft, { attrs:{"class": "image is-48x48"}})
                         newElement("img", pInMediaLeft, {attrs:{moreAttrs:{a:"src", b:"https://bulma.io/images/placeholders/128x128.png"}}})
@@ -108,16 +105,21 @@ document.addEventListener('DOMContentLoaded', () => {
                         ${com.body}
                         `})
 
+                        buttonMore.addEventListener('click', () => {
+                                let articles = document.getElementsByClassName(`toggle_${com.postId}`)
+                                for (let article of articles){
+                                    article.classList.toggle('is-hidden');
+                                }
+                        })
+
                 }
             }
+
+
         }
 
-
     } 
-    
 
-    // Run main
     main(divUsers, divPosts);
-
 
 })
